@@ -22,11 +22,5 @@ int main(int argc, char **argv) {
         break;
     }
 
-    switch (condition) {
-    case OK:
-    case ERROR_WHEN_BUILD:
-    case ERROR_WHEN_RUN:
-    case UNKNOWN_ERROR:
-        break;
-    }
+    react_on_condition(condition);
 }

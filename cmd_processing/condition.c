@@ -1,0 +1,1 @@
+#include "../vm_condition.h"
