@@ -1,9 +1,12 @@
 #include "../paths.h"
 
-vm_condition get_build_paths(int argc, char **argv, char **file_path,
-                             char **bin_path) {
+Condition get_build_paths(int argc, char **argv, char **file_path,
+                          char **bin_path) {
+    Condition condition;
+
     if (argc < 3) {
-        return NO_SOURCE_PATH;
+        condition.state = NO_SOURCE_PATH;
+        return condition;
     }
 
     *file_path = argv[2];
@@ -14,5 +17,6 @@ vm_condition get_build_paths(int argc, char **argv, char **file_path,
         *bin_path = "a.out";
     }
 
-    return OK;
+    condition.state = OK;
+    return condition;
 }

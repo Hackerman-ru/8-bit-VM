@@ -7,21 +7,37 @@
 #include <stdio.h>
 #include <string.h>
 
-static vm_condition open_files(char *source_path, char *destination_path,
-                               FILE **source_file, FILE **destination_file) {
+static Condition open_files(char *source_path, char *destination_path,
+                            FILE **source_file, FILE **destination_file) {
+    Condition condition;
+    condition.state = OK;
+
     if ((*source_file = fopen(source_path, "r")) == NULL) {
-        return NO_FILE_FOUND;
+        condition.state = NO_FILE_FOUND;
+    } else if ((*destination_file = fopen(destination_path, "wb")) == NULL) {
+        condition.state = BAD_DESTINATION_PATH;
     }
 
-    if ((*destination_file = fopen(destination_path, "wb")) == NULL) {
-        return BAD_DESTINATION_PATH;
-    }
-
-    return OK;
+    return condition;
 }
 
-static instruction get_instruction_and_arguments(FILE *source,
-                                                 instruction *inst, int *buf) {
+static Condition close_files(FILE *source_file, FILE *destination_file) {
+    int source_res = fclose(source_file);
+    int destination_res = fclose(destination_file);
+    Condition condition;
+    condition.state = OK;
+
+    if (source_res != 0 || destination_res != 0) {
+        condition.state = ERROR_WHEN_CLOSING;
+    }
+
+    return condition;
+}
+
+static Condition get_instruction_and_arguments(FILE *source, instruction *inst,
+                                               int *buf) {
+    Condition condition;
+    condition.state = OK;
     char inst_str[3];
     fscanf(source, "%s", inst_str);
 
@@ -45,24 +61,23 @@ static instruction get_instruction_and_arguments(FILE *source,
     } else if (strcmp(inst_str, "jrz") == 0) {
 
     } else {
-        print_unknown_instruction(inst_str);
-        return unknown;
+        condition.state = UNKNOWN_INSTRUCTION;
     }
 }
 
-static vm_condition parse_instructions(FILE *source, FILE *destination) {
-    instruction inst;
-    vm_condition condition;
+static Condition parse_instructions(FILE *source, FILE *destination) {
+    Condition condition;
+    condition.state = OK;
     size_t line_number = 0;
+    instruction inst;
 
     do {
         line_number++;
         int buf[2] = {};
-        get_instruction_and_arguments(source, &inst, buf);
+        condition = get_instruction_and_arguments(source, &inst, buf);
 
-        if (inst == unknown) {
-            print_line_of_unknown_instruction(line_number);
-            condition = UKNOWN_INSTRUCTION;
+        if (condition.state != OK) {
+            condition.int_info = line_number;
             break;
         }
 
@@ -71,21 +86,20 @@ static vm_condition parse_instructions(FILE *source, FILE *destination) {
     return condition;
 }
 
-vm_condition build(int argc, char **argv) {
+Condition build(int argc, char **argv) {
     char *source_path, *destination_path;
-    vm_condition condition;
-
-    if ((condition = get_build_paths(argc, argv, &source_path,
-                                     &destination_path)) != OK) {
-        return condition;
-    }
-
     FILE *source, *destination;
+    Condition condition;
 
-    if ((condition = open_files(source_path, destination_path, &source,
-                                &destination)) != OK) {
-        return condition;
+    if ((condition =
+             get_build_paths(argc, argv, &source_path, &destination_path))
+                .state != OK ||
+        (condition =
+             open_files(source_path, destination_path, &source, &destination))
+                .state != OK ||
+        (condition = parse_instructions(source, destination)).state != OK ||
+        (condition = close_files(source, destination)).state != OK) {
     }
 
-    return parse_instructions(source, destination);
+    return condition;
 }

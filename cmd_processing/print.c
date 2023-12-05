@@ -8,7 +8,7 @@ void print_unknown_instruction(char *str) {
     printf("Unknown instruction %s", str);
 }
 
-void print_line_of_unknown_instruction(size_t line_number) {
+void print_line(size_t line_number) {
     printf(" in line %lu\n", line_number);
 }
 

@@ -14,6 +14,5 @@ typedef enum {
     shrnr,
     jmpn,
     jrznr,
-    unknown,
     eof,
 } instruction;
