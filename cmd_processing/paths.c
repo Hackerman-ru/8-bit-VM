@@ -20,6 +20,16 @@ void get_build_paths(Condition *condition, int argc, char **argv,
     }
 }
 
-void get_interpret_path(Condition* condition, int argc, char** argv, char** source_path){
+void get_interpret_path(Condition *condition, int argc, char **argv,
+                        char **source_path) {
+    if (condition->state != OK) {
+        return;
+    }
 
+    if (argc < 3) {
+        condition->state = NO_SOURCE_PATH;
+        return;
+    }
+
+    *source_path = argv[2];
 }

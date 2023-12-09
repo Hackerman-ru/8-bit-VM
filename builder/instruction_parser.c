@@ -15,6 +15,7 @@ typedef enum {
     REGISTER,
     NUMBER,
     MEMORY,
+    MEMORY_REGISTER,
     JUNK,
 } Argument;
 
@@ -37,11 +38,27 @@ static Argument get_argument(uint8_t *value) {
     }
 
     if (*inst == '[') {
-        *value = strtol(inst, &temp, 0);
+        if (*(inst + 1) == 'r') {
+            *value = (uint8_t)strtol(inst + 2, &temp, 0);
+
+            if (*value >= 0 && *value <= 4 && *temp == ']') {
+                return MEMORY_REGISTER;
+            }
+
+            return JUNK;
+        }
+
+        long num = strtol(inst + 1, &temp, 0);
 
         if (*temp != ']') {
             return JUNK;
         }
+
+        if (num != (long)(uint8_t)num) {
+            return JUNK;
+        }
+
+        *value = (uint8_t)num;
 
         return MEMORY;
     }
@@ -54,6 +71,16 @@ static Argument get_argument(uint8_t *value) {
 static void make_invalid(Condition *condition, char *buff) {
     condition->state = INVALID_ARGUMENTS_FOR_INSTRUCTION;
     condition->str_info = buff;
+}
+
+static bool is_empty(char *buff) {
+    for (size_t i = 0; buff[i] != '\0'; ++i) {
+        if (!isspace(buff[i])) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 static void get_instruction_and_arguments(Condition *condition, FILE *source,
@@ -72,6 +99,12 @@ static void get_instruction_and_arguments(Condition *condition, FILE *source,
         return;
     }
 
+    if (is_empty(buff)) {
+        *instruction = empty;
+        free(buff);
+        return;
+    }
+
     char *buff_copy = strdup(buff);
     char *inst = strtok(buff, " ");
 
@@ -82,12 +115,18 @@ static void get_instruction_and_arguments(Condition *condition, FILE *source,
         return;
     }
 
-    if (strcmp(inst, "mov") == 0) {
+    if (*inst == '/' && *(inst + 1) == '/') {
+        *instruction = empty;
+        free(buff);
+        free(buff_copy);
+        return;
+    } else if (strcmp(inst, "mov") == 0) {
         Argument argument = get_argument(arg_buff++);
 
         switch (argument) {
         case JUNK:
             make_invalid(condition, buff_copy);
+            break;
         case NUMBER:
             argument = get_argument(arg_buff);
 
@@ -115,10 +154,23 @@ static void get_instruction_and_arguments(Condition *condition, FILE *source,
                 break;
             case MEMORY:
                 *instruction = movrm;
+                break;
+            case MEMORY_REGISTER:
+                *instruction = movrmr;
+                break;
             default:
                 make_invalid(condition, buff_copy);
             }
 
+            break;
+        case MEMORY_REGISTER:
+            argument = get_argument(arg_buff);
+
+            if (argument != REGISTER) {
+                make_invalid(condition, buff_copy);
+            }
+
+            *instruction = movmrr;
             break;
         }
     } else if (strcmp(inst, "xor") == 0) {
@@ -241,6 +293,22 @@ static void get_instruction_and_arguments(Condition *condition, FILE *source,
         }
 
         *instruction = jrznr;
+    } else if (strcmp(inst, "inc") == 0) {
+        Argument argument = get_argument(arg_buff++);
+
+        if (argument != REGISTER) {
+            make_invalid(condition, buff_copy);
+        }
+
+        *instruction = incr;
+    } else if (strcmp(inst, "dec") == 0) {
+        Argument argument = get_argument(arg_buff++);
+
+        if (argument != REGISTER) {
+            make_invalid(condition, buff_copy);
+        }
+
+        *instruction = decr;
     } else {
         condition->state = UNKNOWN_INSTRUCTION;
         condition->str_info = strdup(inst);
@@ -270,7 +338,7 @@ void parse_instructions(Condition *condition, FILE *source, FILE *destination) {
             break;
         }
 
-        if (instruction != eof) {
+        if (instruction != eof && instruction != empty) {
             buff[0] = (uint8_t)instruction;
             write_command(condition, buff, destination);
 

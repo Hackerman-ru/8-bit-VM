@@ -2,32 +2,15 @@
 
 #include "../condition.h"
 #include "../instructions.h"
+#include "../paths.h"
+#include "file_manager.h"
 
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-static void open_file(Condition *condition, char **argv, FILE **file) {
-    if (condition->state != OK) {
-        return;
-    }
-
-    if ((*file = fopen(argv[1], "rb")) == NULL) {
-        condition->state = NO_FILE_FOUND;
-        condition->str_info = argv[1];
-    }
-}
-
-static void close_file(Condition *condition, FILE *file) {
-    if (condition->state != OK) {
-        return;
-    }
-
-    if (fclose(file) != 0) {
-        condition->state = ERROR_WHEN_CLOSING;
-    }
-}
+#define DEBUG
 
 static void get_instruction_and_arguments(Condition *condition,
                                           FILE *source_file,
@@ -104,21 +87,48 @@ static void execute(Condition *condition, void *memory, uint8_t *registers,
         break;
     case eof:
         break;
+    case movmrr:
+        registers[args[1]] = *(uint8_t *)(memory + registers[args[0]]);
+        break;
+    case movrmr:
+        *(uint8_t *)(memory + registers[args[1]]) = registers[args[0]];
+        break;
+    case decr:
+        registers[args[0]]--;
+        break;
+    case incr:
+        registers[args[0]]++;
+        break;
+    case empty:
+        break;
     }
 }
 
+#ifdef DEBUG
 static void print_registers(uint8_t *registers) {
     for (int i = 0; i < 4; ++i) {
         printf("Register %d = %" PRId8 "\n", i, registers[i]);
     }
+    printf("\n");
 }
 
-Condition interpret(char **argv) {
+static void print_memory(void *memory) {
+    uint8_t *data = memory;
+    for (size_t i = 0; i < 20; ++i) {
+        printf("%" PRId8 " ", data[i]);
+    }
+    printf("\n");
+}
+#endif
+
+Condition interpret(int argc, char **argv) {
+    char *source_path;
     FILE *source_file;
     Condition condition;
     condition.state = OK;
 
-    open_file(&condition, argv, &source_file);
+    get_interpret_path(&condition, argc, argv, &source_path);
+    open_file(&condition, source_path, &source_file);
 
     if (condition.state != OK) {
         return condition;
@@ -126,7 +136,11 @@ Condition interpret(char **argv) {
 
     void *memory = malloc(256);
     uint8_t registers[4] = {};
+#ifdef DEBUG
+    *(uint8_t *)memory = 13;
     print_registers(registers);
+    print_memory(memory);
+#endif
 
     do {
         Instruction instruction = eof;
@@ -138,7 +152,10 @@ Condition interpret(char **argv) {
         }
 
         execute(&condition, memory, registers, instruction, args, source_file);
+#ifdef DEBUG
         print_registers(registers);
+        print_memory(memory);
+#endif
     } while (condition.state == OK);
 
     free(memory);

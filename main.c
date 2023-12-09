@@ -1,8 +1,8 @@
 #include "builder.h"
 #include "condition.h"
+#include "help.h"
 #include "interpretator.h"
 #include "mode.h"
-#include "print.h"
 
 int main(int argc, char **argv) {
     Condition condition;
@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
         condition = build(argc, argv);
         break;
     case RUN:
-        condition = interpret(argv);
+        condition = interpret(argc, argv);
         break;
     case HELP:
         print_help();

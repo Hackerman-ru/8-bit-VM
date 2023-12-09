@@ -1,6 +1,6 @@
 #include "../condition.h"
 
-#include "../print.h"
+#include "../help.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -58,6 +58,9 @@ void react_on_condition(Condition condition) {
         }
 
         free(condition.str_info);
+        break;
+    case INVALID_MEMORY_ACCESS:
+        printf("Invalid memory access while executing\n");
         break;
     case JMP_ERROR:
         printf("Printing jmp error...\n");

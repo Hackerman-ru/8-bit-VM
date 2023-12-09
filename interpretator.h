@@ -2,4 +2,4 @@
 
 #include "condition.h"
 
-Condition interpret(char **argv);
+Condition interpret(int argc, char **argv);

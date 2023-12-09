@@ -1,13 +1,13 @@
 #include "file_manager.h"
 
-void open_file(Condition *condition, char **argv, FILE **file) {
+void open_file(Condition *condition, char *source_path, FILE **file) {
     if (condition->state != OK) {
         return;
     }
 
-    if ((*file = fopen(argv[1], "rb")) == NULL) {
+    if ((*file = fopen(source_path, "rb")) == NULL) {
         condition->state = NO_FILE_FOUND;
-        condition->str_info = argv[1];
+        condition->str_info = source_path;
     }
 }
 

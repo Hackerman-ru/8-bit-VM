@@ -4,7 +4,9 @@ typedef enum {
     movrr,
     movnr,
     movmr,
+    movmrr,
     movrm,
+    movrmr,
     xorrr,
     andrr,
     borrr,
@@ -14,5 +16,8 @@ typedef enum {
     shrnr,
     jmpn,
     jrznr,
+    decr,
+    incr,
+    empty,
     eof,
 } Instruction;
