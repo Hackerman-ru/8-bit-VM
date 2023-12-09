@@ -15,4 +15,4 @@ typedef enum {
     jmpn,
     jrznr,
     eof,
-} instruction;
+} Instruction;

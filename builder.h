@@ -1,5 +1,5 @@
 #pragma once
 
-#include "vm_condition.h"
+#include "condition.h"
 
 Condition build(int argc, char **argv);

@@ -1,5 +1,5 @@
 #pragma once
 
-#include "vm_condition.h"
+#include "condition.h"
 
-vm_condition interpret(char **argv);
+Condition interpret(char **argv);

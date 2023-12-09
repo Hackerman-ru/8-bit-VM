@@ -1,22 +1,25 @@
 #include "../paths.h"
 
-Condition get_build_paths(int argc, char **argv, char **file_path,
-                          char **bin_path) {
-    Condition condition;
+void get_build_paths(Condition *condition, int argc, char **argv,
+                     char **source_path, char **destination_path) {
+    if (condition->state != OK) {
+        return;
+    }
 
     if (argc < 3) {
-        condition.state = NO_SOURCE_PATH;
-        return condition;
+        condition->state = NO_SOURCE_PATH;
+        return;
     }
 
-    *file_path = argv[2];
+    *source_path = argv[2];
 
     if (argc > 3) {
-        *bin_path = argv[3];
+        *destination_path = argv[3];
     } else {
-        *bin_path = "a.out";
+        *destination_path = "a.out";
     }
+}
 
-    condition.state = OK;
-    return condition;
+void get_interpret_path(Condition* condition, int argc, char** argv, char** source_path){
+
 }

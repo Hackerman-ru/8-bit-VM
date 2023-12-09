@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 void print_unknown_mode(char **argv) {
+    printf("Printing unknown mode...\n");
 }
 
 void print_unknown_instruction(char *str) {
@@ -13,4 +14,5 @@ void print_line(size_t line_number) {
 }
 
 void print_help() {
+    printf("Printing help...\n");
 }

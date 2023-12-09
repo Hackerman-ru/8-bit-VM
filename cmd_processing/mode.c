@@ -1,9 +1,14 @@
-#include "../vm_mode.h"
+#include "../mode.h"
 #include <string.h>
 
-vm_mode get_mode(char **argv) {
+Mode get_mode(Condition *condition, int argc, char **argv) {
+    if (argc < 2) {
+        condition->state = NO_MODE;
+        return EMPTY;
+    }
+
     char *str = argv[1];
-    vm_mode mode = UNKNOWN;
+    Mode mode = UNKNOWN;
 
     if (strcmp(str, "build") == 0) {
         mode = BUILD;
@@ -11,6 +16,9 @@ vm_mode get_mode(char **argv) {
         mode = RUN;
     } else if (strcmp(str, "help") == 0) {
         mode = HELP;
+    } else {
+        condition->state = UNKNOWN_MODE;
+        condition->str_info = str;
     }
 
     return mode;

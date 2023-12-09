@@ -1,12 +1,12 @@
 #include "builder.h"
+#include "condition.h"
 #include "interpretator.h"
+#include "mode.h"
 #include "print.h"
-#include "vm_condition.h"
-#include "vm_mode.h"
 
 int main(int argc, char **argv) {
-    vm_mode mode = get_mode(argv);
-    vm_condition condition = OK;
+    Condition condition;
+    Mode mode = get_mode(&condition, argc, argv);
 
     switch (mode) {
     case BUILD:
@@ -15,10 +15,10 @@ int main(int argc, char **argv) {
     case RUN:
         condition = interpret(argv);
         break;
-    case UNKNOWN:
-        print_unknown_mode(argv);
-    default:
+    case HELP:
         print_help();
+        break;
+    default:
         break;
     }
 

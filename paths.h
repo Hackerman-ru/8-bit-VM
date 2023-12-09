@@ -1,6 +1,8 @@
 #pragma once
 
-#include "vm_condition.h"
+#include "condition.h"
 
-Condition get_build_paths(int argc, char **argv, char **file_path,
-                          char **bin_path);
+void get_build_paths(Condition *condition, int argc, char **argv,
+                     char **source_path, char **destination_path);
+void get_interpret_path(Condition *condition, int argc, char **argv,
+                        char **source_path);
