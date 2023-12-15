@@ -5,7 +5,7 @@
 #include "mode.h"
 
 int main(int argc, char **argv) {
-    Condition condition;
+    Condition condition = {OK};
     Mode mode = get_mode(&condition, argc, argv);
 
     switch (mode) {
